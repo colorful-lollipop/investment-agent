@@ -2,9 +2,9 @@
 
 from investment_agent import InvestmentAgent
 from investment_agent.data.mock_provider import MockDataProvider
-from investment_agent.strategy.momentum import DualMAStrategy
-from investment_agent.strategy.mean_reversion import MeanReversionStrategy
 from investment_agent.execution.risk import RiskManager
+from investment_agent.strategy.mean_reversion import MeanReversionStrategy
+from investment_agent.strategy.momentum import DualMAStrategy
 
 
 def main() -> None:
