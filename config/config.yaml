@@ -1,0 +1,42 @@
+# Investment Agent 配置文件
+
+# 初始资金
+capital:
+  initial: 1000000
+
+# 模拟数据源参数
+data:
+  seed: 42
+  trend: 0.0002
+  volatility: 0.018
+  initial_price: 100.0
+
+# 策略列表
+strategies:
+  - name: DualMA
+    fast: 5
+    slow: 20
+    capital_pct: 0.1
+  - name: MeanReversion
+    bb_window: 20
+    bb_std: 2.0
+    rsi_window: 14
+    rsi_buy: 30.0
+    rsi_sell: 70.0
+    capital_pct: 0.1
+
+# 风控参数
+risk:
+  stop_loss_pct: -0.07
+  max_single_position: 0.20
+  max_total_exposure: 0.90
+  blacklist:
+    - "ST0001"
+    - "*ST0002"
+  order_cooldown_seconds: 60
+
+# 回测参数
+backtest:
+  commission_rate: 0.0003
+  slippage: 0.001
+  warmup_days: 60
