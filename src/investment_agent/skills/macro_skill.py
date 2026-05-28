@@ -16,10 +16,11 @@ class MacroAnalysisSkill(Skill):
     输出板块配置建议和大盘择时信号.
     """
 
-    def __init__(self, llm: LLMAdapter | None = None) -> None:
+    def __init__(self, llm: LLMAdapter | None = None, priority: int = 0) -> None:
         super().__init__(
             name="MacroAnalysisSkill",
             description="Analyze macroeconomic events and policy impacts",
+            priority=priority,
         )
         self.llm = llm or LLMAdapter()
 

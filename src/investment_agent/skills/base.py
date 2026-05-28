@@ -38,9 +38,10 @@ class Skill(ABC):
     每个 Skill 接收 MarketEvent，输出 SkillResult（包含交易信号和分析报告）.
     """
 
-    def __init__(self, name: str = "", description: str = "") -> None:
+    def __init__(self, name: str = "", description: str = "", priority: int = 0) -> None:
         self.name = name or self.__class__.__name__
         self.description = description
+        self.priority = priority
         self._enabled = True
 
     @abstractmethod

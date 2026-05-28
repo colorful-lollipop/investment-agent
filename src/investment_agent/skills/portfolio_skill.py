@@ -17,10 +17,11 @@ class PortfolioAdvisorSkill(Skill):
     类似 CrewAI 中的 Process Manager Agent 角色。
     """
 
-    def __init__(self, llm: LLMAdapter | None = None) -> None:
+    def __init__(self, llm: LLMAdapter | None = None, priority: int = 0) -> None:
         super().__init__(
             name="PortfolioAdvisorSkill",
             description="Synthesize multiple skill outputs into final trading decisions",
+            priority=priority,
         )
         self.llm = llm or LLMAdapter()
 

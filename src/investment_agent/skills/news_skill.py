@@ -25,8 +25,11 @@ class NewsAnalysisSkill(Skill):
         llm: LLMAdapter | None = None,
         sentiment_threshold: float = 0.3,
         name: str = "NewsAnalysisSkill",
+        priority: int = 0,
     ) -> None:
-        super().__init__(name=name, description="Analyze financial news sentiment with LLM")
+        super().__init__(
+            name=name, description="Analyze financial news sentiment with LLM", priority=priority
+        )
         self.llm = llm or LLMAdapter()
         self.sentiment_threshold = sentiment_threshold
 
