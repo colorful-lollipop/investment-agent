@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Agent 实时看板</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; }
+  h1 { color: #38bdf8; margin-bottom: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel { background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
+  .panel h2 { font-size: 16px; color: #94a3b8; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px; color: #64748b; border-bottom: 1px solid #334155; }
+  td { padding: 8px; border-bottom: 1px solid #1e293b; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-buy { background: #064e3b; color: #34d399; }
+  .badge-sell { background: #450a0a; color: #f87171; }
+  .badge-news { background: #1e3a5f; color: #60a5fa; }
+  .badge-macro { background: #4c1d95; color: #c084fc; }
+  .controls { margin-bottom: 20px; }
+  button { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  button:hover { background: #0284c7; }
+  .status { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; margin-right: 6px; }
+  #log { max-height: 200px; overflow-y: auto; font-size: 12px; color: #94a3b8; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>🤖 Investment Agent 实时看板</h1>
+<div class="controls">
+  <button onclick="runCycle()">▶ 手动运行 Cycle</button>
+  <span style="margin-left:12px"><span class="status"></span>SSE 连接中...</span>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <h2>📰 最近事件</h2>
+    <table>
+      <thead><tr><th>时间</th><th>类型</th><th>标的</th><th>标题</th></tr></thead>
+      <tbody id="events-body"><tr><td colspan="4" style="color:#64748b">等待数据...</td></tr></tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h2>📈 交易信号</h2>
+    <table>
+      <thead><tr><th>时间</th><th>标的</th><th>方向</th><th>置信度</th><th>理由</th></tr></thead>
+      <tbody id="signals-body"><tr><td colspan="5" style="color:#64748b">等待数据...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:20px">
+  <h2>📝 日志</h2>
+  <div id="log"></div>
+</div>
+
+<script>
+const es = new EventSource('/api/sse');
+
+es.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  log(`[${data.type.toUpperCase()}] ${data.title || data.symbol || ''}`);
+  if (data.type === 'event') appendEvent(data);
+  if (data.type === 'signal') appendSignal(data);
+};
+
+es.onerror = () => log('SSE 连接中断，尝试重连...');
+
+function log(msg) {
+  const el = document.getElementById('log');
+  el.innerHTML = `<div>${new Date().toLocaleTimeString()} ${msg}</div>` + el.innerHTML;
+}
+
+function appendEvent(ev) {
+  const tbody = document.getElementById('events-body');
+  if (tbody.children[0]?.textContent.includes('等待数据')) tbody.innerHTML = '';
+  const typeClass = ev.event_type === 'news' ? 'badge-news' : ev.event_type === 'macro' ? 'badge-macro' : 'badge';
+  const row = `<tr>
+    <td>${ev.timestamp?.slice(11,16) || '-'}</td>
+    <td><span class="badge ${typeClass}">${ev.event_type}</span></td>
+    <td>${ev.symbol || '-'}</td>
+    <td>${ev.title?.slice(0,30) || ''}</td>
+  </tr>`;
+  tbody.insertAdjacentHTML('afterbegin', row);
+  while (tbody.children.length > 20) tbody.lastChild.remove();
+}
+
+function appendSignal(sig) {
+  const tbody = document.getElementById('signals-body');
+  if (tbody.children[0]?.textContent.includes('等待数据')) tbody.innerHTML = '';
+  const dirClass = sig.direction === 'BUY' ? 'badge-buy' : 'badge-sell';
+  const row = `<tr>
+    <td>${sig.timestamp?.slice(11,16) || '-'}</td>
+    <td>${sig.symbol}</td>
+    <td><span class="badge ${dirClass}">${sig.direction}</span></td>
+    <td>${(sig.confidence || 0).toFixed(2)}</td>
+    <td>${(sig.reason || '').slice(0,30)}</td>
+  </tr>`;
+  tbody.insertAdjacentHTML('afterbegin', row);
+  while (tbody.children.length > 20) tbody.lastChild.remove();
+}
+
+async function runCycle() {
+  log('手动触发 Agent cycle...');
+  try {
+    const r = await fetch('/api/run', {method: 'POST'});
+    const j = await r.json();
+    log(`Cycle 完成: ${j.signals?.length || 0} 个信号`);
+  } catch (e) {
+    log('请求失败: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>
