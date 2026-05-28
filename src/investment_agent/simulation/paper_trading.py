@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from investment_agent.core.types import Direction, Fill, Signal
+from investment_agent.data.unified_provider import UnifiedDataProvider
 from investment_agent.execution.broker import MockBroker
 from investment_agent.execution.risk import RiskManager
 from investment_agent.orchestrator.agent_orchestrator import AgentOrchestrator
@@ -159,6 +160,11 @@ class PaperTradingEngine:
         self._running = False
 
     def _get_current_prices(self) -> dict[str, float]:
+        """获取当前价格（使用 UnifiedDataProvider）."""
+        provider = UnifiedDataProvider()
+        return provider.get_batch_prices(self.symbols)
+
+    def _get_current_prices_legacy(self) -> dict[str, float]:
         """获取当前价格（优先 AKShare，失败用 mock）."""
         prices: dict[str, float] = {}
         try:
